@@ -4,6 +4,11 @@
 Lab Section = Tuesday 2 p.m.
 * @version December 1st, 2023
 * System: ZyBook Lab *
+ The program is the game connect 4 in which player X and player O put their symbols in open spots on a 6 by 7 board. 
+    If any player has 4 in a row(vertically, horizontally, or diagonally(left and right), the player wins and the game quits. 
+    If the user enters an invalid column, or a column that is full, then the user in informed. Additionally, if the user chooses to end the game early, 
+    they can type "q" pr "Q" in order to quit. Another functionality is undo. So, the user can undo the previous person's move and it will be the previous 
+    person's move again. Finally, if the user presses p, then the program prints out every move that came before the current move.
 */
 #include <iostream>
 #include <string>
