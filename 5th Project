@@ -1,0 +1,240 @@
+/*
+* @author Deeya Rawat
+* Class: CS 141, Fall 2023
+Lab Section = Tuesday 2 p.m.
+* @version December 1st, 2023
+* System: ZyBook Lab *
+*/
+#include <iostream>
+#include <string>
+
+using namespace std;
+class Board{
+    public:
+        string boardArray[6][7] = {
+        {"-","-","-","-","-","-", "-"},
+        {"-","-","-","-","-","-", "-"},
+        {"-","-","-","-","-","-", "-"},
+        {"-","-","-","-","-","-", "-"},
+        {"-","-","-","-","-","-","-"},
+        {"-","-","-","-","-","-", "-"}
+        };
+
+    public:
+
+    string getBoardContentAt(int row, int col){ //goal is to split up board content, Recieves row and column, returns the point based on row and column sent in 
+        return boardArray[row][col];
+    }
+    void setBoardContentAt(int row, int col, string userSymbol) { //goal is to set the the empty spot in the column that the user wants with setter function that sets the point in the board array with the user's symbol
+        boardArray[row][col] = userSymbol;
+    }
+};
+  
+class Node{ // node class where instance of board is created, next pointer is made, and the player symbol is initialized as X
+    public: 
+    Board currentBoard;
+    Node*next;
+    string playerSymbol = "X";
+};
+
+class LinkedList { // linked list class used to keep track of head and LinkedList function made that sets head with new node
+    public:
+    Node* head;
+
+    LinkedList(){ //constructor that makes head pointer point to the new node
+        head = new Node();
+    }
+
+void addingBoardToFront(){ //adding to front of linked list and does not recieve anything, goal is to change the linked list
+    Node* newNode = new Node(); //initializes new node to add most recent board
+    for(int i = 0; i < 6; i++){ 
+            for(int j = 0; j < 7; j++){ //for loop makes a deep copy of board that needs to be added
+                newNode->currentBoard.setBoardContentAt(i, j, head->currentBoard.getBoardContentAt(i, j));
+            }
+    }
+    newNode->playerSymbol = head->playerSymbol; //sets the newNode's player symbol as what was the head's symbol
+    newNode->next = head; //whatever the newNode is pointing to becomes first in the list
+    head = newNode; // the newNode becomes the head of the list
+    } 
+
+void undoFunc(){ //does not recieve and arguments and it's goal is to undo the most recent move
+    if (head->next == nullptr) { //if what the head is pointing to is null, then the function returns 
+        return;
+    }
+    head = head->next; // to undo, the head is set to what it is pointing to
+}
+Node* reversingList(){ //reversing list function, no input, returns the previous node so that it becomes the new head
+    Node *temp = nullptr; // temporary, previous, and current nodes set as null
+    Node *previous = nullptr;
+    Node *current = head;
+    while(current != nullptr) { //while loop that iterates when current is not null
+        temp = current->next; // sets temporary variable with what current is pointing to 
+        current->next = previous; // sets what current is pointing to as previous
+        previous = current; // sets previous as current value
+        current = temp; // sets current as temporary variable to make swap
+    }
+    return previous; // returns the previous
+}
+
+void printingList(Node*head){ // print function that recieves head of reversed list
+    if(head == nullptr){ // if the head is null then the function is exited
+        return;
+    }
+        cout << "\t0 1 2 3 4 5 6" << endl; // hardcoding border of board
+        for(int i = 0; i < 6; i++){ //nested for loop that prints content at i,j
+            cout << "\t";
+            for(int j = 0; j < 6; j++){
+                cout << head->currentBoard.getBoardContentAt(i, j) << " "; //calls getters to get string at i,j
+            }
+            cout << head->currentBoard.getBoardContentAt(i, 6); // printing rows
+            cout << endl;
+        }
+        cout << endl; 
+        
+        printingList(head->next); // printing list is called and what head is pointing to is sent in to become the new head
+    
+    }
+
+ };
+
+bool movementFunction(Board &board, int &userColumnChoice, string &userSymbol){ // function's goal is to place the user's symbol in the open spot in the column of their choice, recieves the board, column choice, and the variable with the user symbol
+    if(board.getBoardContentAt(0, userColumnChoice) != "-"){ // if statement that checks if the column the user wants is full or not and makes the function returns false if it is full
+        cout << "column chosen is already full";
+        return false; // false is returned because movement can not occur since space is occupied
+    }
+    for(int i = 5; i >= 0; i--){ // for loop that iterates through the board backwards
+        if (board.getBoardContentAt(i, userColumnChoice) == "-"){ // if the the i coordinate given by the loop and the j coordinate given by the user is empty, the point is set with the user's symbol
+            board.setBoardContentAt(i, userColumnChoice, userSymbol);
+            return true;
+        }
+    }
+}
+
+bool checkWinFunction(Board &board){ //function's goal is to check if a player won, recieves board and returns true if a player won and returns false if no win detected
+    for(int i = 0; i < 6; i++){ //two for loops that iterate through the whole board
+        for(int j = 0; j < 7; j++){
+            if(board.getBoardContentAt(i,j) == "-"){ // if statement that checks if the current location is empty and continues to other iteration
+                continue;
+            }
+            if(i + 3 < 6 && board.getBoardContentAt(i,j) == board.getBoardContentAt(i+1,j) && board.getBoardContentAt(i,j) == board.getBoardContentAt(i+2,j) && board.getBoardContentAt(i,j) == board.getBoardContentAt(i+3,j)){
+                cout << "Game is Over, Player " << board.getBoardContentAt(i,j) << " got 4 in a row!!!!" << endl;
+                    return true;
+                    //if statement that first checks if spaces that need to be checked are in bounds then checks vertical wins by incrementing i(row) and keeping j(column) constant and sending point to get functions to get the symbol at that location
+                    //if all symbols match, then it is a vertical victory and the function returns true
+            }
+    
+            if(j +3 < 7 && board.getBoardContentAt(i,j) == board.getBoardContentAt(i,j+1) && board.getBoardContentAt(i,j) == board.getBoardContentAt(i,j+2) && board.getBoardContentAt(i,j) == board.getBoardContentAt(i,j+3)){
+                cout << "Game is Over, Player " << board.getBoardContentAt(i,j) << " got 4 in a row!!!!" << endl;
+                // if statement that first checks if spaces that need to be checked are in bounds then checks horizontal wins by incrementing j(column) and keeping i(row) constant and sending point to get functions to get the symbol at that location
+                    //if all symbols match, then it is a horizontal victory and the function returns true
+                    return true;
+                }
+        
+            if(i+3 < 6 && j+ 3 < 7 && 
+                board.getBoardContentAt(i,j) == board.getBoardContentAt(i+1, j+1) && 
+                board.getBoardContentAt(i,j) == board.getBoardContentAt(i+2,j+2) && 
+                board.getBoardContentAt(i,j) == board.getBoardContentAt(i+3,j+3)){
+                cout << "Game is Over, Player " << board.getBoardContentAt(i,j) << " got 4 in a row!!!!" << endl;
+                    return true;
+                //First checks if spaces that need to be checked are in bounds then checks for right diagonal wins by incrementing i(row) and j(column) and comparing values at those points obtained by get function
+            }
+            if(i-3 >=0 && j+ 3 < 7 && 
+                board.getBoardContentAt(i,j) == board.getBoardContentAt(i-1, j+1) && 
+                board.getBoardContentAt(i,j) == board.getBoardContentAt(i-2,j+2) && 
+                board.getBoardContentAt(i,j) == board.getBoardContentAt(i-3,j+3)){
+                cout << "Game is Over, Player " << board.getBoardContentAt(i,j) << " got 4 in a row!!!!" << endl;
+                    return true;
+                    //First checks if spaces that need to be checked are in bounds then checks for left diagonal wins by decrementing i(row) and incrementing j(column) and comparing values at those points obtained by get function
+                }
+            }
+        }
+    return false; //if none of the if statements execute, false is returned because there was no win detected
+    }
+bool boardFullFunction(Board &board){ //function's goal is to check if the whole board is full, recieves board by reference
+    for(int j = 0; j < 7; j++){ //for loop only iterates through columns and keeps row as 0 to check if first row is full because if the top is full, then the rest of the board has to be full
+        if (board.getBoardContentAt(0,j) == "-") //if any of the spots are empty, then the board is not full so false is returned 
+           return false;
+        }
+        return true; //true is returned because the board has to be full if the if statement didn't execute
+    }
+    
+int main() {
+    int turnCounter = 0; //counter that keeps track of whose turn it is 
+    string userMove; //user input stored in her
+    int userMoveInt = 0; //user input as int is stored in here
+    //string userTurnSymbol; //holds X or O (depends on turn)
+    string userTurnSymbol = "X"; // initially hardcoding the player symbol as x
+
+    cout << "This is the Game Connect 4. Each player should place an X or an O in the space by entering the column you want to place the piece. The piece will fall until it reaches the bottom or the current pieces in the board. When X or O gets 4 in a row (either horizontally, vertically, or diagonally, then that person wins. The user can enter Q (or q) to end the game early. Let's get started!!!" << endl;
+   
+    LinkedList gameList; // creating an instance of the linked list class
+    
+    while(true){ 
+        // printing board 
+        cout << "\t0 1 2 3 4 5 6" << endl;
+        for(int i = 0; i < 6; i++){
+            cout<<"\t";
+            for(int j = 0; j < 6; j++){
+                cout << gameList.head->currentBoard.getBoardContentAt(i, j) << " ";
+            }
+            cout << gameList.head->currentBoard.getBoardContentAt(i, 6);
+            cout << endl;
+        }
+        cout << "It is " << gameList.head->playerSymbol << "'s turn." << endl; //declaring whose turn it is and finding symbol by using linked list class function and accessing the playerSymbol function
+        cout << "Enter a column to place your piece." << endl;
+        cin >> userMove; //taking in user input
+
+        if(userMove == "q"|| userMove == "Q"){
+            cout << "Ending Game"; //if condition for user quitting
+            break;
+        }
+
+        if(userMove == "u"|| userMove == "U") { // if the user Undo's the function is called and the game continues
+                gameList.undoFunc();
+                
+                continue;
+            }
+
+        if(userMove == "p"|| userMove == "P") { // if the user types p, then the newHead node is set as the head returned from reversing the list
+        // then, the gameList head is set as the new head. Finally, the new head is sent to the printing list to print the list in the correct order and the game continues
+                Node* newHead = gameList.reversingList();
+                gameList.head = newHead;
+                gameList.printingList(gameList.head);
+                continue;
+            }
+        userMoveInt = stoi(userMove); //converting user input to int
+
+        if(userMoveInt < 0 || userMoveInt > 6){ //checking if input is less than 0 and greater than 6 to inform user to input a valid number
+            cout << "Please enter a valid column"; //
+            continue;
+        }
+        else{ // if input is valid, movement, win, and full board functions called
+            gameList.addingBoardToFront();
+            bool result = movementFunction(gameList.head->currentBoard, userMoveInt, gameList.head->playerSymbol);
+            bool won = checkWinFunction(gameList.head->currentBoard);
+            bool fullBoard = boardFullFunction(gameList.head->currentBoard);
+            if(fullBoard){ //if board is full, print that it's a tie and break loop
+                cout << "Board is Full, It's a Draw!!!";
+                break;
+            }
+            if(gameList.head->playerSymbol == "X"){ //if the symbol is x then it is changed to o.
+            //if the symbol is o, then it is changed to x
+                gameList.head->playerSymbol = "O";
+            }
+            else{
+                gameList.head->playerSymbol = "X";
+            }
+            if(won){ //if a player won, print out final board after all plays and break
+                for(int i = 0; i < 6; i++){
+                    for(int j = 0; j < 7; j++){
+                        cout << gameList.head->currentBoard.getBoardContentAt(i, j) << " ";
+                    }
+                    cout << endl;
+                }
+                break;
+            }
+            
+        }
+    }
+    return 0;
+}
