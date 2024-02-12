@@ -1,0 +1,200 @@
+/*
+* @author Deeya Rawat
+* Class: CS 141, Fall 2023
+* @version October 11, 2023
+* System: ZyBook Lab *
+10/11/23
+*/
+#include <iostream>
+#include <fstream>
+#include <string>
+#include <vector>
+
+using namespace std;
+
+const int BOARDSIZE = 6; // constant that holds the size of the board
+
+void printBoard(char board[6][6]){ // function to make the correct changes to the board
+    cout << "--------" << endl;
+    
+    for(int i = 0; i < BOARDSIZE; i++){ // for loop that iterates through rows of board
+        cout << "|"; // outputs | per every row 
+        for(int j = 0; j < BOARDSIZE; j++){ // for loop that iterates through the board and replaces every - with .               
+            if (board[i][j] == '-'){ // condition that checks if board[i][j] is dash and changes it
+                board[i][j] = '.';
+            }
+            cout << board[i][j];    
+            if (j == BOARDSIZE - 1 && i == 2){ // adding an = when j = 5 and i = 2
+                cout << "=";
+            }
+            if (j == BOARDSIZE - 1 && i != 2) // if statement that adds | to every row executes if it is not where the = is 
+                cout << "|";
+            
+        }  
+        cout << endl;
+    } 
+    cout << "--------" << endl; // end of board
+}
+
+bool findCar(char board[6][6], char userCarChoice, vector<int>&carx, vector<int>&cary){
+    bool carFound = false; // boolean that is set to false and will be set to true if car is found
+    int carLength = 0;
+    for(int i = 0; i < BOARDSIZE; i++){ // iterating through board with loop
+        for(int j = 0; j < BOARDSIZE; j++){
+            if (board[i][j] == userCarChoice){ // which car is substring of user input. If it matches with the location of the board, it is saved to which car variable
+                board[i][j] = '.'; // replaces the car that the user wants with . to make momvement easier
+                carLength ++;
+                carx.push_back(i); // sends of location of car the user ones into vector
+                cary.push_back(j);
+                carFound = true; // carFound set to true
+            }
+        }
+    }
+    if (carFound == false) {  // if car is not found, false is returned
+        cout << "That car is not on the board.\n";
+        return false;
+    } // true is returned if car is found
+    return true;
+}
+
+void moveCar(char board[6][6], vector<int>&carx, vector<int>&cary, int numOfMovesInt, char direction, char userCarChoice, int& carLength){
+    int possibleMoves = 0; // variable to store possible moves
+    int minMoves = 100; // variable to compare minimum to
+    for(int i = 0; i < carx.size(); i++){
+        possibleMoves = 0;
+        int xCoordinate = carx[i]; // putting indexes of all parts of the car vector into variables
+        int yCoordinate = cary[i];
+
+        if (direction == 'u'){  // if user wants car to move up, for loop entered that iterates based on how much they want to move
+                for(int n = 1; n <= numOfMovesInt; n++){
+                if (board[xCoordinate - n][yCoordinate] == '.'){ 
+                    possibleMoves++; // if the coordinate minus n equals a '.', then possibleMoves incremented
+                }
+                else{
+                    break;
+                }
+            } 
+        }
+        else if (direction == 'd'){
+                for(int n = 1; n <= numOfMovesInt; n++){
+                if (board[xCoordinate + n][yCoordinate] == '.'){ // loop checks if space is empty, then increments possible moves
+                    possibleMoves++;
+                }
+                else{
+                    break;
+                }
+            }
+        }
+      
+    
+        else if (direction == 'l'){
+            for(int n = 1; n <= numOfMovesInt; n++){
+                if (board[xCoordinate][yCoordinate - n] == '.'){
+                    possibleMoves++;
+                }
+                else{
+                    break;
+                }
+            }
+        }
+       
+    
+        else if (direction == 'r'){
+                for(int n = 1; n <= numOfMovesInt; n++){
+                if (board[xCoordinate][yCoordinate + n] == '.' || board[xCoordinate][yCoordinate + n] == userCarChoice){
+                    possibleMoves++;
+                }
+                else{
+                    break;
+                }
+            }
+        }
+             
+        if(possibleMoves < minMoves){
+            minMoves = possibleMoves;
+             }
+
+    }
+
+
+    cout << "Min Moves " << minMoves << endl;
+
+    for(int i = 0; i < carx.size(); i++){
+        int xCoordinate = carx[i]; // putting index of vector into variables
+        int yCoordinate = cary[i];
+
+    if (direction == 'u'){ 
+       
+            xCoordinate -= minMoves; // subtract the minimum number from the row passed by reference
+    }
+    
+    else if (direction == 'd'){
+       
+            xCoordinate += minMoves; // add the minimum number to the row passed by reference
+    }
+    else if (direction == 'l'){
+       
+            yCoordinate -= minMoves; // subtract the minimum number from the column
+    }
+    else if (direction == 'r'){
+            yCoordinate += minMoves; // add the number of moves the user gives 
+    }
+    
+    board[xCoordinate][yCoordinate] = userCarChoice; //sets the car at the modified position
+
+  }   
+}
+
+int main(){
+    char board[6][6]; // initializing board
+    cout << "Enter filename: ";
+    string fileNameInput;
+    cin >> fileNameInput; //user input for file name goes in here
+    
+    ifstream boardFile(fileNameInput); //opening file
+    
+    if (boardFile.is_open()) {  // splitting into rows 
+
+        for (int i = 0; i < BOARDSIZE; i++){
+            for (int j = 0; j < BOARDSIZE; j++) {
+                boardFile >> board[i][j];
+            }
+        }
+
+        boardFile.close();
+
+    string userDirections; // variable that hold the entire instruction input
+    char userCarChoice; //variable that holds which car user wants
+    char numOfMoves; // variable that holds the string value of how much the user wants to move
+    char direction; // variable that holds which direction the user want to move
+    vector<int>carx;
+    vector<int>cary;
+    int carLength; // variable that holds the length of the car
+    while (true){ // while loop that breaks when user inputs Q
+            carx.clear(); // row vector cleared to hold new position
+            cary.clear(); // column vector cleared to hold new position
+            printBoard(board); // board in correct format displayed
+            cout << "Enter next move (or Q to quit):";
+            cin >> userDirections; // user input
+
+            if (userDirections == "Q") //condition that breaks if the user wants to quit the game
+                break;
+                
+            userCarChoice = toupper(userDirections[0]); // first part of user input indexed (their choice of car)
+            numOfMoves = userDirections[1]; //second letter indexed (how much they want to move)
+            int numOfMovesInt = numOfMoves - '0'; // converting letter into number to use to move car
+            direction = tolower(userDirections[2]); // which direction the user wants to go to indexed and put in lowercase
+            
+            if (findCar(board, userCarChoice, carx, cary)) { // if findcar returns true, move car function occurs
+                moveCar(board, carx, cary, numOfMovesInt, direction, userCarChoice, carLength);
+            }
+             if(board[2][5] == 'R') {// if the red car is at row 2 column 5, print statement to tell user they won
+                cout << "You win! Congratulations!";
+                break;
+             }
+        }
+        
+    }
+    
+    return 0;
+}
